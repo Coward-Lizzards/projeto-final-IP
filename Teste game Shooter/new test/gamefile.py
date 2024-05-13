@@ -1,4 +1,5 @@
 import pygame
+import sys
 
 # Initialize Pygame
 pygame.init()
@@ -10,18 +11,23 @@ window = pygame.display.set_mode((ScreenWidth, ScreenHeight))
 pygame.display.set_caption("Shoot 'em up!")
 
 # Set Player
+left = False
+right = False
+walkCount = 0
+#walkRight = [pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight1.png'),pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight2.png'),pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight3.png'),pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight4.png'),pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight5.png'),pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight6.png')]
+#walkLeft = [pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft1.png'),pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft2.png'),pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft3.png'),pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft4.png'),pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft5.png'),pygame.image.load('\Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft6.png')]
 class Player(object):
     def __init__(self, x, y, width, height):
         self.x = x
         self.y = x
         self.width = width
         self.height = height
-        self.speedBase = 10
-        self.speed = 10
+        self.speedBase = 20
+        self.speed = 20
         self.dash = 100
         self.isdash = False
         self.cooldown = 0
-        self.cooldownTime = 60
+        self.cooldownTime = 10
         self.left = False
         self.right = False
         self.walkCount = 0
@@ -102,3 +108,4 @@ while run:
 
     print(player.cooldown)
 pygame.quit()
+sys.exit()
