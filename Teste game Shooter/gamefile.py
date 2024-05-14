@@ -13,9 +13,13 @@ pygame.display.set_caption("Shoot 'em up!")
 # Set Player
 walkRight = [pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight1.png'),pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight2.png'),pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight3.png'),pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight4.png'),pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight5.png'),pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunRight6.png')]
 walkLeft = [pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft1.png'),pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft2.png'),pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft3.png'),pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft4.png'),pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft5.png'),pygame.image.load('Game Art\SPRITE ANIMATION\RUN ANIM\pRunLeft6.png')]
-bgGrass = [pygame.image.load('Game Art\STATICS\bgGrass.png')]
-# idle = [pygame.image.load('Game Art\SPRITE ANIMATION\IDLE ANIM\idle1.png')]
+bgGrass = pygame.image.load('bgGrass.png')
+idle = pygame.image.load('IDLE ANIM\idle1.png')
+
+PlayerLeft = False
+PlayerRight = False
 walkCount = 0
+
 class Player(object):
     def __init__(self, x, y, width, height):
         self.x = x
@@ -28,9 +32,6 @@ class Player(object):
         self.isdash = False
         self.cooldown = 0
         self.cooldownTime = 10
-        self.left = False
-        self.right = False
-        self.walkCount = 0
 
     def update(self):
         # Move player
@@ -39,22 +40,22 @@ class Player(object):
             self.y -= self.speed
         elif keys[pygame.K_a]:
             self.x -= self.speed
-            self.left = True
-            self.right = False
+            PlayerLeft = True
+            PlayerRight = False
         else:
-            self.right = False
-            self.left = False
-            self.walkCount = 0
+            PlayerRight = False
+            PlayerLeft = False
+            walkCount = 0
         if keys[pygame.K_s]:
             self.y += self.speed
         elif keys[pygame.K_d]:
             self.x += self.speed
-            self.right = True
-            self.left = False
+            PlayerRight = True
+            PlayerLeft = False
         else:
-            self.right = False
-            self.left = False
-            self.walkCount = 0
+            PlayerRight = False
+            PlayerLeft = False
+            walkCount = 0
 
         # Apply cooldown
         if self.cooldown > 0:
@@ -65,16 +66,23 @@ class Player(object):
             self.walkCount = 0
     
 def redrawGameWindow():
-    window.fill((0,0,0))
+    global walkCount
+
+    window.blit(bgGrass, (0,0))
     
-    if player.walkCount + 1 >= 27:
-        player.walkCount = 0
-    if player.left == True:
-        window.blit(walkLeft[player.walkCount//3],(player.x, player.y))
-        player.walkCount += 1
-    elif player.right == True:
-        window.blit(walkRight[player.walkCount//3],(player.x, player.y))
-        player.walkCount += 1
+    if walkCount + 1 >= 27:
+        walkCount = 0
+
+    if PlayerLeft:
+        window.blit(walkLeft[walkCount//3],(player.x, player.y))
+        walkCount += 1
+
+    elif PlayerRight:
+        window.blit(walkRight[walkCount//3],(player.x, player.y))
+        walkCount += 1
+
+    else:
+        window.blit(idle, (player.x, player.y))
 
     font = pygame.font.SysFont(None, 20)
     if player.cooldown == 0:
@@ -87,7 +95,7 @@ def redrawGameWindow():
     
 
 # Main Loop
-player = Player(250, 250, 50, 50)
+player = Player(250, 250, 48, 48)
 clock = pygame.time.Clock()
 run = True
 while run:
@@ -133,10 +141,6 @@ while run:
     # Draw
     redrawGameWindow()
 
-
-    print("Walk Count:", player.walkCount)
-    print("Left:", player.left)
-    print("Right:", player.right)
 
 pygame.quit()
 sys.exit()
