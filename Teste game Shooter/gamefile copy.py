@@ -123,15 +123,15 @@ class CameraGroup(pygame.sprite.Group):
         sprites_sorted = sorted(self.sprites(), key=lambda sprite: sprite.rect.centery)
         
         for sprite in sprites_sorted:
-            if sprite != player:  # Draw all sprites except the player
-                window.blit(sprite.image, sprite.rect)
+        #    if sprite != player:  # Draw all sprites except the player
+            window.blit(sprite.image, sprite.rect)
         
         # Draw the player animation
-        if player in self.sprites():  # Check if player is in the group
-            if player.right:
-                window.blit(player.walkRight[player.walkCount // 3], player.rect)
-            elif player.left:
-                window.blit(player.walkLeft[player.walkCount // 3], player.rect)
+       # if player in self.sprites():  # Check if player is in the group
+        #    if player.right:
+         #       window.blit(player.walkRight[player.walkCount // 3], player.rect)
+          #  elif player.left:
+           #     window.blit(player.walkLeft[player.walkCount // 3], player.rect)
 
 # Setup Camera
 camera_group = CameraGroup()
@@ -146,12 +146,12 @@ for i in range(20):
 def redrawGameWindow():
     window.blit(bgGrass, (0, 0))
     camera_group.custom_draw()
-    player.draw(window)
     pygame.display.update()
 
 
 # Main Loop
 player = Player(250, 250, 5)
+camera_group.add(player)
 clock = pygame.time.Clock()
 run = True
 while run:
