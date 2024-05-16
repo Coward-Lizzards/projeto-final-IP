@@ -52,28 +52,32 @@ class Player(pygame.sprite.Sprite):
                          pygame.image.load('Game Art/SPRITE ANIMATION/RUN ANIM/pRunLeft4.png'),
                          pygame.image.load('Game Art/SPRITE ANIMATION/RUN ANIM/pRunLeft5.png'),
                          pygame.image.load('Game Art/SPRITE ANIMATION/RUN ANIM/pRunLeft6.png')]
+        self.idle = [pygame.image.load('IDLE ANIM/idle1.png'),
+                     pygame.image.load('IDLE ANIM/idle2.png'),
+                     pygame.image.load('IDLE ANIM/idle3.png'),
+                     pygame.image.load('IDLE ANIM/idle4.png')]
        
         # Set the initial image and position of the player
-        self.image = self.walkRight[0]
-        self.rect = self.image.get_rect(center=(x, y))
+        self.image = self.idle[0]
+        self.rect = self.image.get_rect(center=(x,y))
         
 
     def update(self):
         # Move player
         keys = pygame.key.get_pressed()
         walking = False  # Flag to indicate if the player is walking
-        if keys[pygame.K_w]:
+        if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.pos.y -= self.speed
             walking = True
-        if keys[pygame.K_a]:
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
             self.pos.x -= self.speed
             self.left = True
             self.right = False
             walking = True
-        if keys[pygame.K_s]:
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
             self.pos.y += self.speed
             walking = True
-        if keys[pygame.K_d]:
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             self.pos.x += self.speed
             self.left = False
             self.right = True
@@ -89,6 +93,10 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.walkLeft[self.walkCount]
         else:
             self.walkCount = 0
+            if self.right:
+                self.image = self.idle[1]
+            elif self.left:
+                self.image = pygame.transform.flip(self.idle[1], True, False)
 
 
         # Apply cooldown
@@ -156,6 +164,7 @@ clock = pygame.time.Clock()
 run = True
 while run:
     # Limit frame rate to 60 FPS
+    pygame.time.delay(50)
     clock.tick(60)
 
     # Reset player speed if dash is not active
