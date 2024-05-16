@@ -18,9 +18,9 @@ bgGrass = pygame.image.load('bgGrass.png')
 # Tree Class
 class Tree(pygame.sprite.Sprite):
     def __init__(self, pos, group):
-        super().__init__()
+        super().__init__(group)
         self.image = pygame.image.load('arvore.png').convert_alpha()
-        self.rect = self.image.get_rect(topleft=pos)
+        self.rect = self.image.get_rect(topleft = pos)
 
 
 # Player Class
@@ -37,8 +37,7 @@ class Player(pygame.sprite.Sprite):
         self.left = False
         self.right = False
         self.walkCount = 0
-        self.idleCount = 0
-        self.idleFrameDuration = 10
+
 
         # Load animation frames
         self.walkRight = [pygame.image.load('Game Art/SPRITE ANIMATION/RUN ANIM/pRunRight1.png'),
@@ -53,14 +52,11 @@ class Player(pygame.sprite.Sprite):
                          pygame.image.load('Game Art/SPRITE ANIMATION/RUN ANIM/pRunLeft4.png'),
                          pygame.image.load('Game Art/SPRITE ANIMATION/RUN ANIM/pRunLeft5.png'),
                          pygame.image.load('Game Art/SPRITE ANIMATION/RUN ANIM/pRunLeft6.png')]
-        self.idle = [pygame.image.load('IDLE ANIM/idle1.png'),
-                     pygame.image.load('IDLE ANIM/idle2.png'),
-                     pygame.image.load('IDLE ANIM/idle3.png'),
-                     pygame.image.load('IDLE ANIM/idle4.png')]
-
+       
         # Set the initial image and position of the player
-        self.image = self.idle[0]
+        self.image = self.walkRight[0]
         self.rect = self.image.get_rect(center=(x, y))
+        
 
     def update(self):
         # Move player
@@ -68,8 +64,6 @@ class Player(pygame.sprite.Sprite):
         walking = False  # Flag to indicate if the player is walking
         if keys[pygame.K_w]:
             self.pos.y -= self.speed
-            self.left = False
-            self.right = False
             walking = True
         if keys[pygame.K_a]:
             self.pos.x -= self.speed
@@ -78,8 +72,6 @@ class Player(pygame.sprite.Sprite):
             walking = True
         if keys[pygame.K_s]:
             self.pos.y += self.speed
-            self.left = False
-            self.right = False
             walking = True
         if keys[pygame.K_d]:
             self.pos.x += self.speed
@@ -87,21 +79,17 @@ class Player(pygame.sprite.Sprite):
             self.right = True
             walking = True
 
-        # Update walk animation
-        if walking:  # Only update walkCount when walking
-            if self.walkCount + 1 >= len(self.walkRight) * 3:
-                self.walkCount = 0
-            else:
-                self.walkCount += 1
-        else:  # Reset walkCount if player stops moving
+
+        if walking:
+            # Increment walkCount to smoothly transition between frames
+            self.walkCount = (self.walkCount + 1) % len(self.walkRight)
+            if self.right:
+                self.image = self.walkRight[self.walkCount]
+            elif self.left:
+                self.image = self.walkLeft[self.walkCount]
+        else:
             self.walkCount = 0
 
-        # Update idle animation
-        if not walking:  # If not moving
-            if self.idleCount + 1 >= len(self.idle) * self.idleFrameDuration:
-                self.idleCount = 0
-            self.image = self.idle[self.idleCount // self.idleFrameDuration]  # Switch between idle frames
-            self.idleCount += 1
 
         # Apply cooldown
         if self.cooldown > 0:
@@ -131,13 +119,23 @@ class CameraGroup(pygame.sprite.Group):
         super().__init__()
         self.display_surface = pygame.display.get_surface()
 
-    def custom_draw(self, window):
-        for sprite in self.sprite():
-            window.blit(sprite.image, sprite.rect)
-
+    def custom_draw(self):
+        sprites_sorted = sorted(self.sprites(), key=lambda sprite: sprite.rect.centery)
+        
+        for sprite in sprites_sorted:
+            if sprite != player:  # Draw all sprites except the player
+                window.blit(sprite.image, sprite.rect)
+        
+        # Draw the player animation
+        if player in self.sprites():  # Check if player is in the group
+            if player.right:
+                window.blit(player.walkRight[player.walkCount // 3], player.rect)
+            elif player.left:
+                window.blit(player.walkLeft[player.walkCount // 3], player.rect)
 
 # Setup Camera
 camera_group = CameraGroup()
+
 
 for i in range(20):
     random_x = randint(0, 550)
@@ -147,6 +145,7 @@ for i in range(20):
 
 def redrawGameWindow():
     window.blit(bgGrass, (0, 0))
+    camera_group.custom_draw()
     player.draw(window)
     pygame.display.update()
 
@@ -157,7 +156,6 @@ clock = pygame.time.Clock()
 run = True
 while run:
     # Limit frame rate to 60 FPS
-    pygame.time.delay(25)
     clock.tick(60)
 
     # Reset player speed if dash is not active
@@ -185,6 +183,7 @@ while run:
 
     # Draw
     redrawGameWindow()
+    camera_group.custom_draw()
 
 pygame.quit()
 sys.exit()
