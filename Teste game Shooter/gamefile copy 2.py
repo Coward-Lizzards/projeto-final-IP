@@ -106,21 +106,26 @@ class Player(pygame.sprite.Sprite):
             text = font.render("Cooldown: " + str(self.cooldown), True, (255, 255, 255))
         window.blit(text, (10, 10))
 
-class Projectile:
+class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, radius, color, angle):
+        super().__init__()
         self.x = x
         self.y = y
         self.radius = radius  # Set the bullet radius here
         self.color = color    # Set the bullet color here
         self.angle = angle
         self.vel = 8
+        self.image = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, color, (radius, radius), radius)
+        self.rect = self.image.get_rect(center=(x, y))
 
     def update(self):
         self.x += self.vel * cos(self.angle)
         self.y += self.vel * sin(self.angle)
+        self.rect.center = (self.x, self.y)
 
     def draw(self, win):
-        pygame.draw.circle(win, self.color, (int(self.x), int(self.y)), self.radius)
+        win.blit(self.image, self.rect)
 
 class CameraGroup(pygame.sprite.Group):
     def __init__(self):
@@ -140,25 +145,25 @@ class Enemy(pygame.sprite.Sprite):
         self.target = target
         self.left = False
         self.right = False
+        self.walkCount = 0
         self.path = []
 
-
-        self.walkLeft = [pygame.image.load(f'RUN ANIM\pRunLeft{i}.png') for i in range(1, 7)]
-        self.walkRight = [pygame.image.load(pygame.transform.flip(f'RUN ANIM\pRunLeft{i}.png')) for i in range(1, 7)]
-
-        self.rect = self.image.get_rect(center=(randint(0, ScreenWidth), randint(0, ScreenHeight)))
+        self.walkLeft = [pygame.image.load(f'ENEMY RUN\EnemyRun{i}.png') for i in range(1, 7)]
+        self.walkRight = [pygame.transform.flip(pygame.image.load(f'ENEMY RUN\EnemyRun{i}.png'), True, False) for i in range(1, 7)]
+        self.image = self.walkLeft[0]
+        self.rect = self.image.get_rect(center=(x, y))
 
     def update(self):
-        walking = False
+        walking = True
         if self.target.pos.distance_to(self.pos) < 300:
             self.move_towards_player()
         else:
             self.wander()
         
-        if self.target.x > self.x:
+        if self.target.pos.x > self.pos.x:
             self.right = True
             self.left = False
-        elif self.target.x < self.x:
+        elif self.target.pos.x < self.pos.x:
             self.right = False
             self.left = True
         
@@ -175,9 +180,6 @@ class Enemy(pygame.sprite.Sprite):
                 self.image = self.walkRight[0]
             elif self.left:
                 self.image = pygame.transform.flip(self.walkRight[0], True, False)
-
-        
-
 
     def move_towards_player(self):
         direction = self.target.pos - self.pos
@@ -226,14 +228,14 @@ def redrawGameWindow():
     pygame.display.update()
 
 player = Player(250, 250, 5)
-enemies = Enemy((random_x), (random_y), 4,(player))
+camera_group.add(player)
+
+enemies = pygame.sprite.Group()
+bullets = pygame.sprite.Group()
 ENEMY_SPAWN_INTERVAL = 60
 MAX_ENEMIES = 10
 
-camera = Camera((ScreenWidth // 8), (ScreenHeight // 8))
-bullets = []
-camera_group.add(player)
-camera_group.add(enemies)
+camera = Camera(ScreenWidth // 8, ScreenHeight // 8)
 enemy_spawn_counter = 0
 clock = pygame.time.Clock()
 run = True
@@ -250,7 +252,8 @@ while run:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 angle = atan2(mouse_y - player.pos.y, mouse_x - player.pos.x)
                 if len(bullets) < 5:
-                    bullets.append(Projectile(player.pos.x, player.pos.y, 3, (255, 255, 255), angle))
+                    bullet = Projectile(player.pos.x, player.pos.y, 3, (255, 255, 255), angle)
+                    bullets.add(bullet)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and player.cooldown == 0 and not player.isdash:
                 player.speed += player.dash
@@ -264,8 +267,21 @@ while run:
     if len(enemies) < MAX_ENEMIES:
         enemy_spawn_counter -= 1
         if enemy_spawn_counter <= 0:
-            enemies.add(Enemy(player))
+            random_x = randint(0, ScreenWidth)
+            random_y = randint(0, ScreenHeight)
+            enemy = Enemy(random_x, random_y, 2, player)
+            enemies.add(enemy)
+            camera_group.add(enemy)
             enemy_spawn_counter = ENEMY_SPAWN_INTERVAL
+
+    # Check collisions between bullets and enemies
+    for bullet in bullets:
+        for enemy in enemies:
+            if pygame.sprite.collide_rect(bullet, enemy):
+                enemies.remove(enemy)
+                camera_group.remove(enemy)
+                bullets.remove(bullet)
+                break
 
     # Check collisions between enemies and the player
     for enemy in enemies:
