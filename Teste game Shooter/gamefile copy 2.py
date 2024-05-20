@@ -240,6 +240,7 @@ enemy_spawn_counter = 0
 clock = pygame.time.Clock()
 run = True
 while run:
+    pygame.time.delay(25)
     clock.tick(60)
     if not player.isdash:
         player.speed = player.speedBase
