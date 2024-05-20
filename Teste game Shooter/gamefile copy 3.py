@@ -13,6 +13,7 @@ ScreenHeight = 640
 window = pygame.display.set_mode((ScreenWidth, ScreenHeight))
 pygame.display.set_caption("Shoot 'em up!")
 
+
 # Sprites
 bgGrass = pygame.image.load('bgGrass.png')
 
@@ -37,6 +38,9 @@ class Player(pygame.sprite.Sprite):
         self.left = False
         self.right = False
         self.walkCount = 0
+
+        self.points = 0
+
 
         # Set Bullets
         self.bulletCooldown = 30 
@@ -127,6 +131,12 @@ class Player(pygame.sprite.Sprite):
         else:
             text = font.render("Bullets: " + str(self.bulletAmount) + "/" + str(self.maxBullets), True, (0, 0, 0))
         window.blit(text, (10, 40))
+
+        window.blit(self.image, self.rect)
+        font = pygame.font.SysFont(None, 30)
+        if self.points >= 0:
+            text = font.render("Points: " + str(self.points), True, (0, 0, 0))
+        window.blit(text, (10, 70))
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, radius, color, angle):
@@ -329,10 +339,9 @@ while run:
             collision_vector = enemy.pos - player.pos
             # Calculate the overlap distance
             overlap_distance = (player.rect.width + enemy.rect.width ) / 2 - collision_vector.length()
-            # Move both the player and the enemy away from each other along the collision vector
-            player.pos -= collision_vector.normalize() * overlap_distance / 2
+            # Move both the player and the normalize() * overlap_distance / 2
             enemy.pos += collision_vector.normalize() * overlap_distance / 2
-            #run = False
+            run = False
 
     # Check collisions between enemies
     for enemy1 in enemies:
@@ -354,6 +363,8 @@ while run:
             bullets.remove(bullet)
     if player.isdash:
         player.isdash = False
+
+    player.points += 1
     redrawGameWindow()
 
 pygame.quit()
