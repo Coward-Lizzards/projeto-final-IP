@@ -1,5 +1,1 @@
-wudsu: 0
-xico: 0
-sla: 0
-xico: 0
-okas: 0
+MAR: 0

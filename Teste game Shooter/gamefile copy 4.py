@@ -43,6 +43,7 @@ class Player(pygame.sprite.Sprite):
 
         self.health = 100
         self.maxhealth = 100
+        
 
         # Set Bullets
         self.bulletCooldown = 30 
@@ -128,12 +129,12 @@ class HealthBar():
         self.y = y
         self.w = w
         self.h = h
-        self.hp = max_hp
-        self.max_hp = max_hp
+        self.hp = max_hp if max_hp > 0 else 1  # Ensure max_health is at least 1
+        self.max_hp = max_hp if max_hp > 0 else 1  # Ensure max_health is at least 1
     
     def draw_health(self, surface):
         #calc health ratio
-        ratio = self.hp / self.max_hp
+        ratio = player.health / player.maxhealth
         pygame.draw.rect(surface, (255,255,255), (self.x, self.y, self.w, self.h))
         pygame.draw.rect(surface, (200,77,55), (self.x, self.y, self.w * ratio, self.h))
 
@@ -147,11 +148,12 @@ class EnergyBar():
         self.energy = energy if energy > 0 else 1  # Ensure max_energy is at least 1
         self.max_energy = max_energy if max_energy > 0 else 1  # Ensure max_energy is at least 1
     
-    def draw_energy(self, surface):
-        # Calculate energy ratio
-        ratio = self.energy / self.max_energy
+    def draw_energy(self, surface, player):
+        # Update energy with current bullet amount
+        self.energy = player.bulletAmount / player.maxBullets
         pygame.draw.rect(surface, (66,76,110), (self.x, self.y, self.w, self.h))
-        pygame.draw.rect(surface, (255,255,255), (self.x, self.y, self.w * ratio, self.h))
+        pygame.draw.rect(surface, (255,255,255), (self.x, self.y, self.w * self.energy, self.h))
+
 
 
 
@@ -338,7 +340,6 @@ for i in range(150):
 
 
 def redrawGameWindow():
-
     window.blit(bgGrass, (0, 0))
     camera_group.custom_draw()
     
@@ -347,13 +348,12 @@ def redrawGameWindow():
         bullet.draw(window)
 
     # Draw the cooldown information using the GUI object
-
     health_bar.draw_health(window)
-    energy_bar.draw_energy(window)
-
+    energy_bar.draw_energy(window, player)  # Pass player object to draw_energy method
     gui.draw_cooldown(window)
     
     pygame.display.update()
+
 
 
 
@@ -435,7 +435,9 @@ while run:
             overlap_distance = (player.rect.width + enemy.rect.width ) / 2 - collision_vector.length()
             # Move both the player and the normalize() * overlap_distance / 2
             enemy.pos += collision_vector.normalize() * overlap_distance / 2
-            #run = False
+            player.health -= 1
+            if player.health <= 0:
+                run = False
 
     # Check collisions between enemies
     for enemy1 in enemies:
