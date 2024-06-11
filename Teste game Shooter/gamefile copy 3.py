@@ -341,7 +341,7 @@ while run:
             overlap_distance = (player.rect.width + enemy.rect.width ) / 2 - collision_vector.length()
             # Move both the player and the normalize() * overlap_distance / 2
             enemy.pos += collision_vector.normalize() * overlap_distance / 2
-            run = False
+            #run = False
 
     # Check collisions between enemies
     for enemy1 in enemies:
