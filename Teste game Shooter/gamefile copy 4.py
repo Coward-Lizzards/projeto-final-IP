@@ -8,12 +8,12 @@ from pygame.math import Vector2
 pygame.init()
 
 # Set up Interface
-ScreenWidth = 640
-ScreenHeight = 640
+ScreenWidth = 1080
+ScreenHeight = 720
 window = pygame.display.set_mode((ScreenWidth, ScreenHeight))
 pygame.display.set_caption("Shoot 'em up!")
 
-
+PixeloidMono = 'PixeloidMono.ttf'
 # Sprites
 bgGrass = pygame.image.load('bgGrass.png')
 
@@ -29,8 +29,9 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, speed):
         super().__init__()
         self.pos = pygame.math.Vector2(x, y)
-        self.speedBaaaaad = speed
-        self.dasaaaaaaah = 100
+        self.speedBase = speed
+        self.speed = speed
+        self.dash = 100
         self.isdash = False
         self.cooldown = 0
         self.cooldownTime = 10
@@ -40,6 +41,8 @@ class Player(pygame.sprite.Sprite):
 
         self.points = 0
 
+        self.health = 100
+        self.maxhealth = 100
 
         # Set Bullets
         self.bulletCooldown = 30 
@@ -70,21 +73,25 @@ class Player(pygame.sprite.Sprite):
         walking = False  # Flag to indicate if the player is walking
 
         if keys[pygame.K_w] or keys[pygame.K_UP]:
-            self.pos.y -= self.speed
-            walking = True
+            if self.pos.y - self.speed >= 0:  # Ensure player doesn't go above window boundary
+                self.pos.y -= self.speed
+                walking = True
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            self.pos.x -= self.speed
-            self.left = True
-            self.right = False
-            walking = True
+            if self.pos.x - self.speed >= 0:  # Ensure player doesn't go left of window boundary
+                self.pos.x -= self.speed
+                self.left = True
+                self.right = False
+                walking = True
         if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-            self.pos.y += self.speed
-            walking = True
+            if self.pos.y + self.speed <= ScreenHeight:  # Ensure player doesn't go below window boundary
+                self.pos.y += self.speed
+                walking = True
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            self.pos.x += self.speed
-            self.left = False
-            self.right = True
-            walking = True
+            if self.pos.x + self.speed <= ScreenWidth:  # Ensure player doesn't go right of window boundary
+                self.pos.x += self.speed
+                self.left = False
+                self.right = True
+                walking = True
 
         for event in events:
             if event.type == pygame.KEYDOWN:
@@ -114,28 +121,70 @@ class Player(pygame.sprite.Sprite):
         # Update player position
         self.rect.center = self.pos
 
+
+class HealthBar():
+    def __init__(self, x, y, w, h, max_hp):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.hp = max_hp
+        self.max_hp = max_hp
+    
+    def draw_health(self, surface):
+        #calc health ratio
+        ratio = self.hp / self.max_hp
+        pygame.draw.rect(surface, (255,255,255), (self.x, self.y, self.w, self.h))
+        pygame.draw.rect(surface, (200,77,55), (self.x, self.y, self.w * ratio, self.h))
+
+
+class EnergyBar():
+    def __init__(self, x, y, w, h, max_energy, energy):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.energy = energy if energy > 0 else 1  # Ensure max_energy is at least 1
+        self.max_energy = max_energy if max_energy > 0 else 1  # Ensure max_energy is at least 1
+    
+    def draw_energy(self, surface):
+        # Calculate energy ratio
+        ratio = self.energy / self.max_energy
+        pygame.draw.rect(surface, (66,76,110), (self.x, self.y, self.w, self.h))
+        pygame.draw.rect(surface, (255,255,255), (self.x, self.y, self.w * ratio, self.h))
+
+
+
+class GUI:
+    def __init__(self):
+        self.font = pygame.font.Font(PixeloidMono, 30)  # Load PixeloidMono font
+        self.image = pygame.image.load('playerPIC.png').convert_alpha()  # Load the fixed image
+        
+        # Scale the image to desired size (width, height)
+        self.image = pygame.transform.scale(self.image, (351, 150))  # Adjust (200, 200) to your desired size
+        self.image_rect = self.image.get_rect(topleft=(0, ScreenHeight - 150))  # Position of the fixed image
+
     def draw_cooldown(self, window):
-        window.blit(self.image, self.rect)
-        font = pygame.font.SysFont(None, 30)
-        if self.cooldown == 0:
-            text = font.render("Dash Available", True, (0, 0, 0))
+        if player.cooldown == 0:
+            text = self.font.render("Dash Available", True, (0, 0, 0))
         else:
-            text = font.render("Cooldown: " + str(self.cooldown), True, (0, 0, 0))
+            text = self.font.render("Cooldown: " + str(player.cooldown), True, (0, 0, 0))
         window.blit(text, (10, 10))
 
-        window.blit(self.image, self.rect)
-        font = pygame.font.SysFont(None, 30)
-        if self.bulletAmount == 0:
-            text = font.render("NO BULLETS!!", True, (255, 0, 0))
+        if player.bulletAmount == 0:
+            text = self.font.render("NO BULLETS!!", True, (255, 0, 0))
         else:
-            text = font.render("Bullets: " + str(self.bulletAmount) + "/" + str(self.maxBullets), True, (0, 0, 0))
+            text = self.font.render("Bullets: " + str(player.bulletAmount) + "/" + str(player.maxBullets), True, (0, 0, 0))
         window.blit(text, (10, 40))
 
-        window.blit(self.image, self.rect)
-        font = pygame.font.SysFont(None, 30)
-        if self.points >= 0:
-            text = font.render("Points: " + str(self.points), True, (0, 0, 0))
+        if player.points >= 0:
+            text = self.font.render("Points: " + str(player.points), True, (0, 0, 0))
         window.blit(text, (10, 70))
+
+        # Blit the fixed image
+        window.blit(self.image, self.image_rect)
+
+ 
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, radius, color, angle):
@@ -157,18 +206,43 @@ class Projectile(pygame.sprite.Sprite):
         self.y += self.vel * sin(self.angle)
         self.rect.center = (self.x, self.y)
 
-    def draw(self, win):
-        win.blit(self.image, self.rect)
+    def draw(self, window):
+        window.blit(self.image, self.rect)
 
 class CameraGroup(pygame.sprite.Group):
     def __init__(self):
         super().__init__()
         self.display_surface = pygame.display.get_surface()
 
+        self.offset = pygame.math.Vector2()
+        self.half_w = self.display_surface.get_size()[0] // 2
+        self.half_h = self.display_surface.get_size()[1] // 2
+
+
+        self.bg_surf = pygame.image.load('bgGrass.png').convert_alpha()  # Load the background image
+        self.bg_rect = self.bg_surf.get_rect()  # Get the rectangle of the background image
+        self.bg_width = self.bg_rect.width
+
+    
     def custom_draw(self):
+
+        # Calculate the position of the background image based on the camera's offset
+        bg_x = int(self.offset.x % self.bg_rect.width)
+        bg_y = int(self.offset.y % self.bg_rect.height)
+
+        # Blit the background image repeatedly to cover the entire display surface
+        for y in range(bg_y - self.bg_rect.height, self.display_surface.get_height(), self.bg_rect.height):
+            for x in range(bg_x - self.bg_rect.width, self.display_surface.get_width(), self.bg_rect.width):
+                self.display_surface.blit(self.bg_surf, (x, y))
+
+        # Blit the sprites
         sprites_sorted = sorted(self.sprites(), key=lambda sprite: sprite.rect.centery)
         for sprite in sprites_sorted:
-            window.blit(sprite.image, sprite.rect)
+            offset_pos = sprite.rect.topleft + self.offset
+            window.blit(sprite.image, offset_pos)
+
+
+
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, speed, target):
@@ -245,25 +319,45 @@ class Camera:
         y_diff = self.height / 2 - target.rect.centery
         self.camera = pygame.Rect(x_diff, y_diff, self.width, self.height)
 
-camera_group = CameraGroup()
 
-for i in range(20):
-    random_x = randint(0, 550)
-    random_y = randint(0, 550)
+player = Player(250, 250, 5)
+
+camera_group = CameraGroup()
+camera_group.add(player)
+
+health_bar = HealthBar(165, 579, 153, 9, player.health)
+energy_bar = EnergyBar(186, 618, 153, 9, player.maxBullets, player.bulletAmount)
+
+gui = GUI()
+
+for i in range(150):
+    random_x = randint(0, 1080)
+    random_y = randint(0, 720)
     Tree((random_x, random_y), camera_group)
 
+
+
 def redrawGameWindow():
+
     window.blit(bgGrass, (0, 0))
-    player.draw_cooldown(window)
     camera_group.custom_draw()
     
     for bullet in bullets:
         bullet.update()
         bullet.draw(window)
+
+    # Draw the cooldown information using the GUI object
+
+    health_bar.draw_health(window)
+    energy_bar.draw_energy(window)
+
+    gui.draw_cooldown(window)
+    
     pygame.display.update()
 
-player = Player(250, 250, 5)
-camera_group.add(player)
+
+
+
 
 enemies = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
@@ -366,6 +460,6 @@ while run:
 
     player.points += 1
     redrawGameWindow()
-
+    
 pygame.quit()
 sys.exit()

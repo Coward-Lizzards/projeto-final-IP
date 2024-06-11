@@ -8,8 +8,8 @@ from pygame.math import Vector2
 pygame.init()
 
 # Set up Interface
-ScreenWidth = 640
-ScreenHeight = 640
+ScreenWidth = 1080
+ScreenHeight = 720
 window = pygame.display.set_mode((ScreenWidth, ScreenHeight))
 pygame.display.set_caption("Shoot 'em up!")
 
@@ -29,8 +29,9 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, speed):
         super().__init__()
         self.pos = pygame.math.Vector2(x, y)
-        self.speedBaaaaad = speed
-        self.dasaaaaaaah = 100
+        self.speedBase = speed
+        self.speed = speed
+        self.dash = 100
         self.isdash = False
         self.cooldown = 0
         self.cooldownTime = 10
@@ -114,6 +115,9 @@ class Player(pygame.sprite.Sprite):
         # Update player position
         self.rect.center = self.pos
 
+
+
+class GUI:
     def draw_cooldown(self, window):
         window.blit(self.image, self.rect)
         font = pygame.font.SysFont(None, 30)
@@ -161,11 +165,36 @@ class Projectile(pygame.sprite.Sprite):
         win.blit(self.image, self.rect)
 
 class CameraGroup(pygame.sprite.Group):
-    def __init__(self):
+    def __init__(self, target):
         super().__init__()
         self.display_surface = pygame.display.get_surface()
 
+        self.offset = pygame.math.Vector2()
+        self.half_w = self.display_surface.get_size()[0] // 2
+        self.half_h = self.display_surface.get_size()[1] // 2
+
+        self.target = target  # Store the target (player)
+
+        self.bg_surf = pygame.image.load('bgGrass.png').convert_alpha()  # Load the background image
+        self.bg_rect = self.bg_surf.get_rect()  # Get the rectangle of the background image
+        self.bg_width = self.bg_rect.width
+
+    def center_target_camera(self):
+        self.offset.x = self.half_w - self.target.rect.centerx  # Adjust the camera's x-offset
+        self.offset.y = self.half_h - self.target.rect.centery  # Adjust the camera's y-offset
+
     def custom_draw(self):
+        self.center_target_camera()
+
+        # Calculate the position of the background image based on the camera's offset
+        bg_x = int(self.offset.x % self.bg_rect.width)
+        bg_y = int(self.offset.y % self.bg_rect.height)
+
+        # Blit the background image repeatedly to cover the entire display surface
+        for y in range(bg_y - self.bg_rect.height, self.display_surface.get_height(), self.bg_rect.height):
+            for x in range(bg_x - self.bg_rect.width, self.display_surface.get_width(), self.bg_rect.width):
+                self.display_surface.blit(self.bg_surf, (x, y))
+
         sprites_sorted = sorted(self.sprites(), key=lambda sprite: sprite.rect.centery)
         for sprite in sprites_sorted:
             window.blit(sprite.image, sprite.rect)
@@ -245,7 +274,11 @@ class Camera:
         y_diff = self.height / 2 - target.rect.centery
         self.camera = pygame.Rect(x_diff, y_diff, self.width, self.height)
 
-camera_group = CameraGroup()
+
+player = Player(250, 250, 5)
+
+camera_group = CameraGroup(player)
+camera_group.add(player)
 
 for i in range(20):
     random_x = randint(0, 550)
@@ -254,7 +287,6 @@ for i in range(20):
 
 def redrawGameWindow():
     window.blit(bgGrass, (0, 0))
-    player.draw_cooldown(window)
     camera_group.custom_draw()
     
     for bullet in bullets:
@@ -262,8 +294,7 @@ def redrawGameWindow():
         bullet.draw(window)
     pygame.display.update()
 
-player = Player(250, 250, 5)
-camera_group.add(player)
+
 
 enemies = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
