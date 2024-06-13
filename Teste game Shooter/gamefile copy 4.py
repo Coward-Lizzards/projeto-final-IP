@@ -50,7 +50,7 @@ class Player(pygame.sprite.Sprite):
         self.bulletCooldownTime = 30
 
         self.bulletAmount = 10
-        self.maxBullets = 10
+        self.maxBullets = 20
 
         #for event in events:
          #   if event.type == pygame.MOUSEBUTTONDOWN:
@@ -424,6 +424,7 @@ while run:
                 enemies.remove(enemy)
                 camera_group.remove(enemy)
                 bullets.remove(bullet)
+                player.points += 100
                 break
 
     # Check collisions between enemies and the player
