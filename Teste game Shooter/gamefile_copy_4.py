@@ -161,29 +161,47 @@ class EnergyBar():
 
 class GUI:
     def __init__(self):
-        self.font = pygame.font.Font(PixeloidMono, 30)  # Load PixeloidMono font
+        self.font = pygame.font.Font("PixeloidMono.ttf", 30)  # Load PixeloidMono font
         self.image = pygame.image.load('playerPIC.png').convert_alpha()  # Load the fixed image
         
         # Scale the image to desired size (width, height)
-        self.image = pygame.transform.scale(self.image, (351, 150))  # Adjust (200, 200) to your desired size
+        self.image = pygame.transform.scale(self.image, (351, 150))  # Adjust (351, 150) to your desired size
         self.image_rect = self.image.get_rect(topleft=(0, ScreenHeight - 150))  # Position of the fixed image
+
+    def render_text_with_border(self, text, font, text_color, border_color, border_thickness):
+        text_surface = font.render(text, True, text_color)
+        x, y = text_surface.get_size()
+        
+        # Create a new surface with a larger size to accommodate the border
+        border_surface = pygame.Surface((x + 2 * border_thickness, y + 2 * border_thickness), pygame.SRCALPHA)
+        
+        # Draw the border by rendering the text in the border color at different offsets
+        for dx in range(-border_thickness, border_thickness + 1):
+            for dy in range(-border_thickness, border_thickness + 1):
+                if dx != 0 or dy != 0:  # Skip the center (main text position)
+                    border_surface.blit(font.render(text, True, border_color), (dx + border_thickness, dy + border_thickness))
+        
+        # Draw the main text in the center
+        border_surface.blit(text_surface, (border_thickness, border_thickness))
+        
+        return border_surface
 
     def draw_cooldown(self, window):
         if player.cooldown == 0:
-            text = self.font.render("Dash Available", True, (0, 0, 0))
+            text = "Dash Available"
         else:
-            text = self.font.render("Cooldown: " + str(player.cooldown), True, (0, 0, 0))
-        window.blit(text, (10, 10))
-
-        if player.bulletAmount == 0:
-            text = self.font.render("NO BULLETS!!", True, (255, 0, 0))
-        else:
-            text = self.font.render("Bullets: " + str(player.bulletAmount) + "/" + str(player.maxBullets), True, (0, 0, 0))
-        window.blit(text, (10, 40))
-
+            text = "Cooldown: " + str(player.cooldown)
+        
+        # Render text with border
+        bordered_text = self.render_text_with_border(text, self.font, (0, 0, 0), (0, 0, 0), border_thickness=3)
+        window.blit(bordered_text, (10, 10))
+        
         if player.points >= 0:
-            text = self.font.render("Points: " + str(player.points), True, (0, 0, 0))
-        window.blit(text, (10, 70))
+            score_text = "Score: " + str(player.points)
+            
+            # Render score text with border
+            bordered_score_text = self.render_text_with_border(score_text, self.font, (0, 0, 0), (0, 0, 0), border_thickness=3)
+            window.blit(bordered_score_text, (10, 70))
 
         # Blit the fixed image
         window.blit(self.image, self.image_rect)
@@ -355,8 +373,6 @@ def redrawGameWindow():
     gui.draw_cooldown(window)
     
     pygame.display.update()
-
-
 
 
 
