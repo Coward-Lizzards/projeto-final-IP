@@ -1,8 +1,10 @@
 Projeto de python para intrudoção à programação.
   De: 
-    Marina Luisa L. Barcelos
+    Marina Luisa L. Barcelos(@mar.lb_013)
     e
-    Nícolas R. Emery
+    Nícolas R. Emery(@nicksemery)
+
+    
 
 O jogo se passa em um cenário pós-apocaliptico dominado por Baratas Mutantes. O jogador é um soldado solitário equipado apenas de sua arma de eletricidade em uma floresta repleta de baratas. 
 Você vai morrer.
