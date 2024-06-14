@@ -1,6 +1,7 @@
 Projeto de python para intrudoção à programação.
   De: 
     Marina Luisa L. Barcelos
+    e
     Nícolas R. Emery
 
 O jogo se passa em um cenário pós-apocaliptico dominado por Baratas Mutantes. O jogador é um soldado solitário equipado apenas de sua arma de eletricidade em uma floresta repleta de baratas. 
