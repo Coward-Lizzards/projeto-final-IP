@@ -2,6 +2,8 @@ import pygame
 import sys
 import subprocess
 
+# Alunos: Marina Luisa Lemos Barcelos e Nicolas R. Emery 
+
 # Initialize Pygame
 pygame.init()
 
