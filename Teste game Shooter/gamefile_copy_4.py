@@ -26,6 +26,22 @@ class Tree(pygame.sprite.Sprite):
         self.image = pygame.image.load('arvore.png').convert_alpha()
         self.rect = self.image.get_rect(topleft=pos)
 
+
+
+def update_score(score):
+    with open("score.txt", "w") as file:
+        file.write(str(score))
+
+def read_score():
+    try:
+        with open("score.txt", "r") as file:
+            return int(file.read().strip())  # Read and convert score to integer
+    except FileNotFoundError:
+        return 0  # Return 0 if file does not exist or score is not valid
+    except ValueError:
+        return 0  # Return 0 if score could not be converted to integer
+
+
 # Player Class
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, speed):
@@ -51,8 +67,8 @@ class Player(pygame.sprite.Sprite):
         self.bulletCooldown = 30 
         self.bulletCooldownTime = 30
 
-        self.bulletAmount = 10
-        self.maxBullets = 20
+        self.bulletAmount = 30
+        self.maxBullets = 30
 
         #for event in events:
          #   if event.type == pygame.MOUSEBUTTONDOWN:
@@ -125,6 +141,8 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = self.pos
 
 
+
+
 class HealthBar():
     def __init__(self, x, y, w, h, max_hp):
         self.x = x
@@ -193,20 +211,20 @@ class GUI:
             text = "Cooldown: " + str(player.cooldown)
         
         # Render text with border
-        bordered_text = self.render_text_with_border(text, self.font, (0, 0, 0), (0, 0, 0), border_thickness=3)
+        bordered_text = self.render_text_with_border(text, self.font, (199, 207, 221), (0, 0, 0), border_thickness=3)
         window.blit(bordered_text, (10, 10))
         
         if player.points >= 0:
             score_text = "Score: " + str(player.points)
             
             # Render score text with border
-            bordered_score_text = self.render_text_with_border(score_text, self.font, (0, 0, 0), (0, 0, 0), border_thickness=3)
+            bordered_score_text = self.render_text_with_border(score_text, self.font, (146, 161, 185), (0, 0, 0), border_thickness=3)
             window.blit(bordered_score_text, (10, 70))
 
         # Blit the fixed image
         window.blit(self.image, self.image_rect)
 
- 
+
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, radius, color, angle):
@@ -343,6 +361,7 @@ class Camera:
 
 
 player = Player(250, 250, 5)
+score = read_score()
 
 camera_group = CameraGroup()
 camera_group.add(player)
@@ -379,8 +398,8 @@ def redrawGameWindow():
 
 enemies = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
-ENEMY_SPAWN_INTERVAL = 20
-MAX_ENEMIES = 50
+ENEMY_SPAWN_INTERVAL = 10
+MAX_ENEMIES = 100
 
 camera = Camera(ScreenWidth // 8, ScreenHeight // 8)
 enemy_spawn_counter = 0
@@ -482,6 +501,10 @@ while run:
         player.isdash = False
 
     player.points += 1
+
+    if player.points >= score:
+        update_score(player.points)
+
     redrawGameWindow()
     
 pygame.quit()
