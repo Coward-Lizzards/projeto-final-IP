@@ -6,6 +6,7 @@ from pygame.math import Vector2
 
 # Initialize Pygame
 pygame.init()
+pygame.mixer.init()
 
 # Set up Interface
 ScreenWidth = 1080
@@ -16,6 +17,7 @@ pygame.display.set_caption("Shoot 'em up!")
 PixeloidMono = 'PixeloidMono.ttf'
 # Sprites
 bgGrass = pygame.image.load('bgGrass.png')
+pygame.mixer.music.load('At-Dooms-Gate.flac')
 
 # Tree Class
 class Tree(pygame.sprite.Sprite):
@@ -367,10 +369,12 @@ MAX_ENEMIES = 50
 camera = Camera(ScreenWidth // 8, ScreenHeight // 8)
 enemy_spawn_counter = 0
 clock = pygame.time.Clock()
+pygame.mixer.music.play(-1) 
 run = True
 while run:
     pygame.time.delay(25)
     clock.tick(60)
+
     if not player.isdash:
         player.speed = player.speedBase
     events = pygame.event.get()
@@ -387,7 +391,7 @@ while run:
                         bullets.add(bullet)
                         player.bulletAmount -= 1
 
-
+    
         #Bullet cooldown
         if player.bulletAmount < player.maxBullets:
             player.bulletCooldown -= 1
